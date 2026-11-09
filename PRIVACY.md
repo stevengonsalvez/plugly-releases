@@ -7,7 +7,7 @@ Plugly is published by SHOT Clubhouse Ltd ("we", "us"). This policy covers the P
 ## Summary
 
 - The mobile app pairs with your own desktop. Pairing does not require a Plugly account.
-- The content of your session traffic between the phone and the desktop is encrypted end to end by the pairing layer. Push notifications are different: their text passes through our push gateway and Apple or Google in readable form (see Push notifications).
+- The content of your session traffic between the phone and the desktop is encrypted end to end by the pairing layer. Push notifications are different: their text passes through a push gateway and Apple or Google in readable form (see Push notifications).
 - The mobile app has an optional, experimental sign-in to a Plugly Hub that you configure yourself. It is off by default.
 - The mobile app contains no analytics or usage tracking code. The desktop app can send anonymous usage events, described below.
 - We do not sell data and do not use it for advertising.
@@ -22,7 +22,7 @@ Plugly is published by SHOT Clubhouse Ltd ("we", "us"). This policy covers the P
 
 ## Push notifications
 
-Your phone obtains a push token from Google Firebase Cloud Messaging (Android) or Apple Push Notification service (iOS) and sends that token, with its platform, to your paired desktop. Your desktop creates the random device identifier when you pair; the phone does not choose it. Your desktop registers the token and identifier with our push gateway.
+Your phone obtains a push token from Google Firebase Cloud Messaging (Android) or Apple Push Notification service (iOS) and sends that token, with its platform, to your paired desktop. Your desktop creates the random device identifier when you pair; the phone does not choose it. Your desktop registers the token and identifier with the push gateway it is configured to use.
 
 When a notification is sent, your desktop gives the gateway the whole notification, which includes:
 
@@ -30,7 +30,7 @@ When a notification is sent, your desktop gives the gateway the whole notificati
 - the agent state and the notification source;
 - a worktree identifier and a pane key.
 
-Titles and bodies can contain branch names, worktree names and the status of your coding agents (for example "feat/x - Claude finished"). The gateway forwards the title and body to Apple (iOS) or Google (Android) so they can be shown on your phone, so the gateway and Apple or Google can read that text.
+Titles and bodies can contain branch names, worktree names and the status of your coding agents (for example "feat/x - Claude finished"). The gateway forwards the title and body to Apple (iOS) or Google (Android) so they can be shown on your phone, so the gateway operator and Apple or Google can read that text.
 
 ## Other network requests the mobile app makes
 
@@ -51,7 +51,7 @@ The desktop app can send anonymous usage events (no content, no file paths, no I
 ## Where data goes
 
 - Desktop anonymous usage analytics: PostHog Cloud.
-- Push delivery: our push gateway, then Apple Push Notification service (iOS) or Google Firebase Cloud Messaging (Android).
+- Push delivery: the push gateway your desktop is configured to use, then Apple Push Notification service (iOS) or Google Firebase Cloud Messaging (Android).
 - Mobile requests listed above: GitHub, Apple, Google, a relay server, and a Hub URL you choose.
 
 ## Sharing
