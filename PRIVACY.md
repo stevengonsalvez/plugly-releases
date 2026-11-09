@@ -7,7 +7,7 @@ Plugly is published by SHOT Clubhouse Ltd ("we", "us"). This policy covers the P
 ## Summary
 
 - The mobile app pairs with your own desktop. Pairing does not require a Plugly account.
-- The content of your session traffic between the phone and the desktop is encrypted end to end by the pairing layer. Push notifications are different: their text passes through a push gateway and Apple or Google in readable form (see Push notifications).
+- Connections between the phone and the desktop that are built on the pairing encryption layer use it to protect session content end to end. Not every path is covered, see Encryption. Push notifications are different: their text and several identifiers, including your local folder path, pass through a push gateway and Apple or Google in readable form (see Push notifications).
 - The mobile app has an optional, experimental sign-in to a Plugly Hub that you configure yourself. It is off by default.
 - The mobile app contains no analytics or usage tracking code. The desktop app can send anonymous usage events, described below.
 - We do not sell data and do not use it for advertising.
@@ -15,10 +15,10 @@ Plugly is published by SHOT Clubhouse Ltd ("we", "us"). This policy covers the P
 ## What the mobile app does with your data
 
 - **Camera.** Used to scan the QR code that pairs your phone with your desktop.
-- **Microphone.** Used for voice dictation. Dictation is transcribed by your paired desktop.
-- **Photos.** Images you choose to attach are sent to your own paired desktop session.
+- **Microphone.** Used for voice dictation. Dictation is transcribed by your paired desktop. On the desktop, if you choose an OpenAI transcription model and supply your own OpenAI API key, the desktop may send the recorded audio to OpenAI, which handles it under its own policy.
+- **Photos and files.** Images you choose to attach, and any file you pick with the file picker, are sent to your own paired desktop session.
 - **Local network (iOS).** iOS asks for local network access so the app can reach your desktop on your local network.
-- **Diagnostics.** The connection diagnostics screen builds a report that you can copy to the clipboard. In app versions that remove the Send diagnostics action, nothing is transmitted from that screen. Earlier versions showed a Send diagnostics action that submitted a redacted, size-limited report (host name, endpoint, versions, connection state and events, never terminal contents or credentials) only after you tapped it.
+- **Diagnostics.** The connection diagnostics screen builds a report that you can copy to the clipboard. In app versions that remove the Send diagnostics action, nothing is transmitted from that screen. Earlier versions showed a Send diagnostics action that, after you tapped it, attempted to submit a redacted, size-limited report (host name, endpoint, versions, connection state and events, never terminal contents or credentials). The address that action used did not resolve, so those reports were attempted but none were received by us.
 
 ## Push notifications
 
@@ -28,35 +28,39 @@ When a notification is sent, your desktop gives the gateway the whole notificati
 
 - the notification title and body text;
 - the agent state and the notification source;
-- a worktree identifier and a pane key.
+- a worktree identifier, which is built from the repository identifier and the absolute path of the worktree folder on your computer, so it usually contains your computer's folder names and often your operating system user name;
+- a pane key, the execution host, an identifier (fingerprint) of your desktop, and notification identifiers and counters.
 
-Titles and bodies can contain branch names, worktree names and the status of your coding agents (for example "feat/x - Claude finished"). The gateway forwards the title and body to Apple (iOS) or Google (Android) so they can be shown on your phone, so the gateway operator and Apple or Google can read that text.
+Titles and bodies can contain branch names, worktree names and the status of your coding agents (for example "feat/x - Claude finished"). The gateway forwards the title and body to Apple (iOS) or Google (Android) so they can be shown on your phone. It also includes the other fields above, including the worktree identifier and its folder path, in the data it sends to Apple or Google with the notification. The gateway operator and Apple or Google can therefore read that text and those identifiers.
 
 ## Other network requests the mobile app makes
 
-- **Relay connections.** When your phone connects to your desktop through a relay instead of directly, the phone opens a WebSocket connection to a relay server whose address comes from your pairing information. The relay sees your IP address and connection details. The session content on that connection is end-to-end encrypted by the pairing layer.
+- **Relay connections.** When your phone connects to your desktop through a relay instead of directly, the phone opens a WebSocket connection to a relay server whose address comes from your pairing information. The relay sees your IP address and connection details. Session content on that connection is protected by the pairing layer where the connection is built on it (see Encryption).
 - **Agent icons.** To draw some agent icons, the app asks Google's favicon service (`www.google.com/s2/favicons`) for the icon of the agent's website. That request sends your IP address and the agent's domain name to Google.
+- **Images and avatars.** Images shown in chats can be loaded from any web address (http or https) that appears in the conversation, and the host serving the image sees your IP address. The same applies to comment author avatars in pull request views and to repository icons whose image comes from a web address supplied by your desktop, such as a favicon service or a GitHub avatar address.
 - **Updates.** On Android, the app checks for updates by calling the GitHub API for the `plugly-releases` repository. On iOS, it looks up the app version with Apple's iTunes lookup service. These requests expose your IP address to GitHub or Apple.
 - **Network troubleshooting.** The in-app network troubleshooting check queries Google Public DNS (`dns.google`), which sees your IP address.
 - **Plugly Hub (optional, experimental).** If you switch on the experimental Plugly Hub setting and enter a Hub URL, the app signs in to that Hub using a device sign-in code, then sends a bearer token and your Hub requests to that URL. The Hub URL must use HTTPS. The Hub is run by whoever operates the URL you enter, and its handling of your data is governed by that operator. The setting is off by default and the Hub screens are reachable only after you enable it. We found no build setting that hides this option in release builds, so it appears in Settings.
 
 ## Encryption
 
-Session traffic between the mobile app and your desktop passes through a pairing-based end-to-end encryption layer that runs over the WebSocket connection. The underlying network connection can itself be unencrypted on some paths. The mobile app permits plain `ws://` and HTTP connections to devices on your local network on iOS and, on Android, allows cleartext traffic generally. On iOS it also permits plain HTTP to the address ranges `100.64.0.0/10` and `fd7a:115c:a1e0::/48` (used by Tailscale). On those paths an observer of your network can see connection metadata such as addresses and traffic volume, and the content protection comes from the pairing layer only. The update, favicon, DNS and Hub requests above use HTTPS.
+Session traffic between the mobile app and your desktop can pass through a pairing-based end-to-end encryption layer. We verified that the mobile app's WebSocket session client to your desktop performs the paired encryption handshake (legacy and v2) before session content is exchanged. We have not verified every other connection type, so connections that are built on the paired encryption layer use it, and we make no end-to-end claim for others. The underlying network connection can itself be unencrypted on some paths. The mobile app permits plain `ws://` and HTTP connections to devices on your local network on iOS and, on Android, allows cleartext traffic generally. On iOS it also permits plain HTTP to the address ranges `100.64.0.0/10` and `fd7a:115c:a1e0::/48` (used by Tailscale). On those paths an observer of your network can see connection metadata such as addresses and traffic volume, and the content protection comes from the pairing layer only. The update, favicon, DNS and Hub requests above use HTTPS. Image and avatar addresses may be plain HTTP if the address itself is.
 
 ## What the desktop app collects
 
 The desktop app can send anonymous usage events (no content, no file paths, no IP address stored against a profile). This can be disabled in Settings, Privacy, or by setting `DO_NOT_TRACK=1` or `PLUGLY_TELEMETRY_DISABLED=1`.
 
+The desktop app also includes support for an optional Plugly cloud sign-in using OpenID Connect. If used, it requests your profile, your email address and offline access (a refresh token).
+
 ## Where data goes
 
 - Desktop anonymous usage analytics: PostHog Cloud.
 - Push delivery: the push gateway your desktop is configured to use, then Apple Push Notification service (iOS) or Google Firebase Cloud Messaging (Android).
-- Mobile requests listed above: GitHub, Apple, Google, a relay server, and a Hub URL you choose.
+- Mobile requests listed above: GitHub, Apple, Google, OpenAI (desktop dictation only, if you configure it), a relay server, any host serving an image or avatar, and a Hub URL you choose.
 
 ## Sharing
 
-We do not sell personal data and do not share it with third parties except the service providers listed above, who process it on our behalf.
+We do not sell personal data. Services named in this policy, including Apple, Google, GitHub, PostHog, OpenAI, any relay or push gateway operator, any Hub operator and any host that serves an image, are independent third parties. They handle data under their own policies, and we do not control them.
 
 ## Retention and deletion
 
